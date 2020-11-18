@@ -1,5 +1,6 @@
 {
+  $type: VerifyObjectSamples.Person,
   GivenNames: John,
   FamilyName: Smith,
-  Dob: '\/Date(970358400000+0000)\/'
+  Dob: DateTimeOffset_1
 }
