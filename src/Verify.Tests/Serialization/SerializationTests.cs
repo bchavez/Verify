@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VerifyTests;
@@ -43,7 +48,49 @@ public class SerializationTests
 
         #endregion
     }
+    public class WeatherForecast
+    {
+        public DateTimeOffset Date { get; set; }
+        public int TemperatureCelsius { get; set; }
+        public string Summary { get; set; }
+    }
 
+    class TextEncoderSettingsEx : TextEncoderSettings
+    {
+        public TextEncoderSettingsEx()
+        {
+
+        }
+    }
+    [Fact]
+    public Task SystemText()
+    {
+        var weatherForecast = new WeatherForecast
+        {
+            Date = DateTimeOffset.Now,
+            Summary = "F\"oo"
+        };
+        var encoderSettings = new TextEncoderSettingsEx();
+        encoderSettings.AllowRange(UnicodeRanges.All);
+        var encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        var fieldInfo1 = encoder.GetType().GetField("_allowedCharacters", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var o = fieldInfo1.GetValue(encoder);
+        unsafe
+        {
+            fixed (char* value = "sdfs\"asdasd")
+            {
+                var findFirstCharacterToEncode = encoder.FindFirstCharacterToEncode(value,11);
+                Debug.WriteLine(findFirstCharacterToEncode);
+            }
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            Encoder = encoder,
+            WriteIndented = true,
+        };
+        return Verifier.Verify(System.Text.Json.JsonSerializer.Serialize(weatherForecast,options));
+    }
     [Fact]
     public Task ShouldScrubDatetime()
     {
