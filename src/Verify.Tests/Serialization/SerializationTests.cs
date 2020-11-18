@@ -74,13 +74,15 @@ public class SerializationTests
         encoderSettings.AllowRange(UnicodeRanges.All);
         var encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
         var fieldInfo1 = encoder.GetType().GetField("_allowedCharacters", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var o = fieldInfo1.GetValue(encoder);
+        var o = fieldInfo1.GetValue(encoder)!;
+        var method = o.GetType().GetMethod("AllowCharacter", BindingFlags.Instance | BindingFlags.Public)!;
+        method.Invoke(o,new object[]{ '"'});
         unsafe
         {
             fixed (char* value = "sdfs\"asdasd")
             {
-                var findFirstCharacterToEncode = encoder.FindFirstCharacterToEncode(value,11);
-                Debug.WriteLine(findFirstCharacterToEncode);
+                var firstToEncode = encoder.FindFirstCharacterToEncode(value,11);
+                Debug.WriteLine(firstToEncode);
             }
         }
 
@@ -91,6 +93,7 @@ public class SerializationTests
         };
         return Verifier.Verify(System.Text.Json.JsonSerializer.Serialize(weatherForecast,options));
     }
+
     [Fact]
     public Task ShouldScrubDatetime()
     {
