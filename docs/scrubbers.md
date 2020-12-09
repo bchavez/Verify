@@ -30,7 +30,7 @@ For example remove lines containing `text`:
 ```cs
 verifySettings.ScrubLines(line => line.Contains("text"));
 ```
-<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L360-L364' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublines' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L366-L370' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublines' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -45,7 +45,7 @@ For example remove lines containing `text1` or `text2`
 ```cs
 verifySettings.ScrubLinesContaining("text1", "text2");
 ```
-<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L366-L370' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublinescontaining' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L372-L376' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublinescontaining' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Case insensitive by default (StringComparison.OrdinalIgnoreCase).
@@ -57,7 +57,7 @@ Case insensitive by default (StringComparison.OrdinalIgnoreCase).
 ```cs
 verifySettings.ScrubLinesContaining(StringComparison.Ordinal, "text1", "text2");
 ```
-<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L372-L376' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublinescontainingordinal' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L378-L382' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublinescontainingordinal' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -72,7 +72,7 @@ For example converts lines to upper case:
 ```cs
 verifySettings.ScrubLinesWithReplace(line => line.ToUpper());
 ```
-<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L378-L382' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublineswithreplace' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L384-L388' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrublineswithreplace' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -85,7 +85,7 @@ Replaces `Environment.MachineName` with `TheMachineName`.
 ```cs
 verifySettings.ScrubMachineName();
 ```
-<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L384-L388' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrubmachinename' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Serialization/SerializationTests.cs#L390-L394' title='Snippet source file'>snippet source</a> | <a href='#snippet-scrubmachinename' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -108,7 +108,7 @@ public class ScrubbersSample
     [Fact]
     public Task Lines()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.ScrubLinesWithReplace(
             replaceLine: line =>
             {
@@ -168,12 +168,12 @@ LineJ
     [Fact]
     public Task AfterSerialization()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.AddScrubber(
             input => input.Replace("7D3", "TheRowVersion"));
         return Verifier.Verify(target, settings);
@@ -182,7 +182,7 @@ LineJ
     [Fact]
     public Task AfterSerializationFluent()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
@@ -208,7 +208,7 @@ public class ScrubbersSample
     [Test]
     public Task Lines()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.ScrubLinesWithReplace(
             replaceLine: line =>
             {
@@ -267,12 +267,12 @@ LineJ
     [Test]
     public Task AfterSerialization()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.AddScrubber(
             s => s.Replace("7D3", "TheRowVersion"));
         return Verifier.Verify(target, settings);
@@ -281,7 +281,7 @@ LineJ
     [Test]
     public Task AfterSerializationFluent()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
@@ -307,7 +307,7 @@ public class ScrubbersSample :
     [TestMethod]
     public Task Lines()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.ScrubLinesWithReplace(
             replaceLine: line =>
             {
@@ -367,12 +367,12 @@ LineJ
     [TestMethod]
     public Task AfterSerialization()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.AddScrubber(
             input => input.Replace("7D3", "TheRowVersion"));
         return Verify(target, settings);
@@ -381,7 +381,7 @@ LineJ
     [TestMethod]
     public Task AfterSerializationFluent()
     {
-        var target = new ToBeScrubbed
+        ToBeScrubbed target = new()
         {
             RowVersion = "7D3"
         };
@@ -444,14 +444,14 @@ public class ScrubberLevelsSample
 
     public ScrubberLevelsSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.AddScrubber(s => s.Replace("Three", "C"));
     }
 
     [Fact]
     public Task Usage()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.AddScrubber(s => s.Replace("Two", "B"));
         return Verifier.Verify("One Two Three", settings);
     }
@@ -486,14 +486,14 @@ public class ScrubberLevelsSample
 
     public ScrubberLevelsSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.AddScrubber(s => s.Replace("Three", "C"));
     }
 
     [Test]
     public Task Simple()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.AddScrubber(s => s.Replace("Two", "B"));
         return Verifier.Verify("One Two Three", settings);
     }
@@ -529,14 +529,14 @@ public class ScrubberLevelsSample :
 
     public ScrubberLevelsSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.AddScrubber(s => s.Replace("Three", "C"));
     }
 
     [TestMethod]
     public Task Simple()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.AddScrubber(s => s.Replace("Two", "B"));
         return Verify("One Two Three", settings);
     }
