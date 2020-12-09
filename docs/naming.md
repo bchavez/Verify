@@ -36,7 +36,7 @@ public class UniqueForSample
     [Fact]
     public Task Runtime()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntime();
         return Verifier.Verify("value", settings);
     }
@@ -51,7 +51,7 @@ public class UniqueForSample
     [Fact]
     public Task RuntimeAndVersion()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntimeAndVersion();
         return Verifier.Verify("value", settings);
     }
@@ -59,7 +59,7 @@ public class UniqueForSample
     [Fact]
     public Task AssemblyConfiguration()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForAssemblyConfiguration();
         return Verifier.Verify("value", settings);
     }
@@ -87,7 +87,7 @@ public class UniqueForSample
     [Test]
     public Task Runtime()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntime();
         return Verifier.Verify("value", settings);
     }
@@ -102,7 +102,7 @@ public class UniqueForSample
     [Test]
     public Task AssemblyConfiguration()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForAssemblyConfiguration();
         return Verifier.Verify("value", settings);
     }
@@ -117,7 +117,7 @@ public class UniqueForSample
     [Test]
     public Task RuntimeAndVersion()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntimeAndVersion();
         return Verifier.Verify("value", settings);
     }
@@ -146,7 +146,7 @@ public class UniqueForSample :
     [TestMethod]
     public Task Runtime()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntime();
         return Verify("value", settings);
     }
@@ -161,7 +161,7 @@ public class UniqueForSample :
     [TestMethod]
     public Task RuntimeAndVersion()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntimeAndVersion();
         return Verify("value", settings);
     }
@@ -176,7 +176,7 @@ public class UniqueForSample :
     [TestMethod]
     public Task AssemblyConfiguration()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForAssemblyConfiguration();
         return Verify("value", settings);
     }
@@ -232,14 +232,14 @@ public class ExtensionSample
 
     public ExtensionSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.UseExtension("json");
     }
 
     [Fact]
     public Task AtMethod()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.UseExtension("xml");
         return Verifier.Verify(
             target: @"
@@ -323,3 +323,29 @@ Debug.WriteLine(Namer.RuntimeAndVersion);
 ```
 <sup><a href='/src/Verify.Tests/NamerTests.cs#L47-L50' title='Snippet source file'>snippet source</a> | <a href='#snippet-accessnamerruntimeandversion' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
+
+
+## DeriveTestDirectory
+
+DeriveTestDirectory allows the storage directory of `.verified.` files to be customized based on the current context. The contextual parameters are parameters passed are as follows:
+
+ * `sourceFile`: The full path to the file that the test existed in at compile time.
+ * `projectDirectory`: The directory that the project existed in at compile time.
+
+Foe example to place all `.verified.` files in a `{ProjectDirectory}\Snapshots` the following could be used:
+
+<!-- snippet: DeriveTestDirectory -->
+<a id='snippet-derivetestdirectory'></a>
+```cs
+VerifierSettings.DeriveTestDirectory(
+    (sourceFile, projectDirectory) =>
+    {
+        var snapshotsDirectory = Path.Combine(projectDirectory, "Snapshots");
+        Directory.CreateDirectory(snapshotsDirectory);
+        return Path.Combine(snapshotsDirectory);
+    });
+```
+<sup><a href='/src/Verify.Tests/Snippets/Snippets.cs#L84-L94' title='Snippet source file'>snippet source</a> | <a href='#snippet-derivetestdirectory' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+DeriveTestDirectory can also be useful when deriving the storage directory on a [build server](build-server.md#custom-Test-directory)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,8 +11,8 @@ namespace VerifyTests
 {
     public static class TypeNameConverter
     {
-        static Dictionary<Type, string> cacheDictionary = new();
-        static Dictionary<ICustomAttributeProvider, string> infoCache = new();
+        static ConcurrentDictionary<Type, string> cacheDictionary = new();
+        static ConcurrentDictionary<ICustomAttributeProvider, string> infoCache = new();
 
         static CSharpCodeProvider codeDomProvider = new();
 
@@ -76,7 +77,7 @@ namespace VerifyTests
             return infoCache.GetOrAdd(constructor, _ =>
             {
                 var declaringType = GetName(constructor.DeclaringType!);
-                var builder = new StringBuilder($"{declaringType}");
+                StringBuilder builder = new($"{declaringType}");
                 if (constructor.IsStatic)
                 {
                     builder.Append(".cctor(");
@@ -98,7 +99,7 @@ namespace VerifyTests
             return infoCache.GetOrAdd(method, _ =>
             {
                 var declaringType = GetName(method.DeclaringType!);
-                var builder = new StringBuilder($"{declaringType}.{method.Name}(");
+                StringBuilder builder = new($"{declaringType}.{method.Name}(");
                 var parameters = method.GetParameters()
                     .Select(x => $"{GetName(x.ParameterType)} {x.Name}");
                 builder.Append(string.Join(", ", parameters));
@@ -114,8 +115,8 @@ namespace VerifyTests
                 return "dynamic";
             }
 
-            if (type.Name.StartsWith("<")
-                || type.IsNested && type.DeclaringType == typeof(Enumerable))
+            if (type.Name.StartsWith("<") ||
+                type.IsNested && type.DeclaringType == typeof(Enumerable))
             {
                 var singleOrDefault = type.GetInterfaces()
                     .SingleOrDefault(x =>
@@ -131,15 +132,16 @@ namespace VerifyTests
                 }
             }
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DictionaryWrapper<,>))
+            if (type.IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(DictionaryWrapper<,>))
             {
                 type = type.GetGenericArguments().Last();
             }
 
             var typeName = GetTypeName(type);
-            var reference = new CodeTypeReference(typeName);
+            CodeTypeReference reference = new(typeName);
             var name = codeDomProvider.GetTypeOutput(reference);
-            var list = new List<string>();
+            List<string> list = new();
             AllGenericArgumentNamespace(type, list);
             foreach (var ns in list.Distinct())
             {

@@ -10,14 +10,14 @@ public class ExtensionSample
 
     public ExtensionSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.UseExtension("json");
     }
 
     [Test]
     public async Task AtMethod()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.UseExtension("xml");
         await Verifier.Verify(
             target: @"

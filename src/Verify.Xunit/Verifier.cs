@@ -10,22 +10,24 @@ namespace VerifyXunit
     {
         static InnerVerifier GetVerifier(VerifySettings settings, string sourceFile)
         {
-            var className = Path.GetFileNameWithoutExtension(sourceFile);
             if (!UsesVerifyAttribute.TryGet(out var info))
             {
-                throw new XunitException($"Expected to find a `[UsesVerify]` on `{className}`.");
+                var fileName = Path.GetFileName(sourceFile);
+                throw new XunitException($"Expected to find a `[UsesVerify]` on test class. File: {fileName}.");
             }
+
+            var className = Path.GetFileNameWithoutExtension(sourceFile);
 
             var parameters = settings.GetParameters(info);
 
             var name = TestNameBuilder.GetUniqueTestName(className, info, parameters);
-            return new InnerVerifier(name, sourceFile, info.DeclaringType!.Assembly, settings);
+            return new(name, sourceFile, info.DeclaringType!.Assembly, settings);
         }
 
         static SettingsTask Verify(VerifySettings? settings, string sourceFile, Func<InnerVerifier, Task> verify)
         {
             Guard.AgainstNullOrEmpty(sourceFile, nameof(sourceFile));
-            return new SettingsTask(
+            return new(
                 settings,
                 async verifySettings =>
                 {

@@ -24,7 +24,7 @@ static class FileComparer
             return Equality.Equal;
         }
 
-        return new EqualityResult(Equality.NotEqual, result.Message);
+        return new(Equality.NotEqual, result.Message);
     }
 
     static Task<CompareResult> FilesEqual(VerifySettings settings, FilePair filePair)
@@ -52,8 +52,8 @@ static class FileComparer
 
     static bool FilesAreSameSize(in FilePair file)
     {
-        var first = new FileInfo(file.Received);
-        var second = new FileInfo(file.Verified);
+        FileInfo first = new(file.Received);
+        FileInfo second = new(file.Verified);
         return first.Length == second.Length;
     }
 

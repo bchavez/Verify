@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace VerifyTests
         string testName;
         Assembly assembly;
         VerifySettings settings;
-        internal static Func<string, Exception> exceptionBuilder = null!;
+        internal static Func<string, Exception> exceptionBuilder = message => throw new(message);
 
         public static void Init(Func<string, Exception> exceptionBuilder)
         {
@@ -24,10 +25,38 @@ namespace VerifyTests
 
         public InnerVerifier(string testName, string sourceFile, Assembly assembly, VerifySettings settings)
         {
-            directory = VerifierSettings.DeriveDirectory(sourceFile, assembly);
+            var projectDirectory = AttributeReader.GetProjectDirectory(assembly);
+            directory = VerifierSettings.DeriveDirectory(sourceFile, projectDirectory);
             this.testName = testName;
             this.assembly = assembly;
             this.settings = settings;
+
+            var altProjectDirectory = projectDirectory.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var altProjectDirectoryTrimmed = altProjectDirectory.TrimEnd('/', '\\');
+            var projectDirectoryTrimmed = projectDirectory.TrimEnd('/', '\\');
+            settings.instanceScrubbers.Add(builder =>
+            {
+                builder.Replace(projectDirectory, "{ProjectDirectory}");
+                builder.Replace(projectDirectoryTrimmed, "{ProjectDirectory}");
+                builder.Replace(altProjectDirectory, "{ProjectDirectory}");
+                builder.Replace(altProjectDirectoryTrimmed, "{ProjectDirectory}");
+            });
+
+            if (AttributeReader.TryGetSolutionDirectory(assembly, out var solutionDirectory))
+            {
+                var altSolutionDirectory = solutionDirectory!.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                var altSolutionDirectoryTrimmed = altSolutionDirectory.TrimEnd('/', '\\');
+                var solutionDirectoryTrimmed = solutionDirectory.TrimEnd('/', '\\');
+                settings.instanceScrubbers.Add(builder =>
+                {
+                    builder.Replace(solutionDirectory, "{SolutionDirectory}");
+                    builder.Replace(solutionDirectoryTrimmed, "{SolutionDirectory}");
+                    builder.Replace(altSolutionDirectory, "{SolutionDirectory}");
+                    builder.Replace(altSolutionDirectoryTrimmed, "{SolutionDirectory}");
+                });
+            }
+
+
             CounterContext.Start();
         }
 

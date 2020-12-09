@@ -8,6 +8,10 @@ using Newtonsoft.Json.Converters;
 
 namespace VerifyTests
 {
+    public delegate TMember ConvertMember<in TTarget, TMember>(TTarget target, TMember memberValue);
+
+    public delegate object? ConvertMember(object? target, object? memberValue);
+
     public class SerializationSettings
     {
         public SerializationSettings()
@@ -17,12 +21,13 @@ namespace VerifyTests
             IgnoreMember<AggregateException>(x => x.InnerException);
             IgnoreMember<Exception>(x => x.Source);
             IgnoreMember<Exception>(x => x.HResult);
-            IgnoreMember<Exception>(x => x.StackTrace);
+            MemberConverter<Exception, string>(x => x.StackTrace, (_, value) => Scrubbers.ScrubStackTrace(value));
 
             currentSettings = BuildSettings();
         }
 
         Dictionary<Type, List<string>> ignoredMembers = new();
+        Dictionary<Type, Dictionary<string, ConvertMember>> membersConverters = new();
         List<string> ignoredByNameMembers = new();
         Dictionary<Type, List<Func<object, bool>>> ignoredInstances = new();
 
@@ -30,6 +35,7 @@ namespace VerifyTests
         {
             return new()
             {
+                membersConverters = membersConverters.Clone(),
                 ignoredMembers = ignoredMembers.Clone(),
                 ignoredByNameMembers = ignoredByNameMembers.Clone(),
                 ignoreEmptyCollections = ignoreEmptyCollections,
@@ -57,10 +63,36 @@ namespace VerifyTests
             Guard.AgainstNullOrEmpty(name, nameof(name));
             if (!ignoredMembers.TryGetValue(declaringType, out var list))
             {
-                ignoredMembers[declaringType] = list = new List<string>();
+                ignoredMembers[declaringType] = list = new();
             }
 
             list.Add(name);
+        }
+
+        public void MemberConverter<TTarget, TMember>(
+            Expression<Func<TTarget, TMember?>> expression,
+            ConvertMember<TTarget, TMember?> converter)
+        {
+            Guard.AgainstNull(expression, nameof(expression));
+            Guard.AgainstNull(converter, nameof(converter));
+            var member = expression.FindMember();
+            MemberConverter(
+                member.DeclaringType!,
+                member.Name,
+                (target, memberValue) => converter((TTarget) target!, (TMember) memberValue!));
+        }
+
+        public void MemberConverter(Type declaringType, string name, ConvertMember converter)
+        {
+            Guard.AgainstNull(declaringType, nameof(declaringType));
+            Guard.AgainstNull(converter, nameof(converter));
+            Guard.AgainstNullOrEmpty(name, nameof(name));
+            if (!membersConverters.TryGetValue(declaringType, out var list))
+            {
+                membersConverters[declaringType] = list = new();
+            }
+
+            list[name] = converter;
         }
 
         public void IgnoreMember(string name)
@@ -98,7 +130,7 @@ namespace VerifyTests
 
             if (!ignoredInstances.TryGetValue(type, out var list))
             {
-                ignoredInstances[type] = list = new List<Func<object, bool>>();
+                ignoredInstances[type] = list = new();
             }
 
             list.Add(shouldIgnore);
@@ -128,15 +160,16 @@ namespace VerifyTests
             where T : Exception
         {
             Guard.AgainstNull(item, nameof(item));
-            ignoreMembersThatThrow.Add(x =>
-            {
-                if (x is T exception)
+            ignoreMembersThatThrow.Add(
+                x =>
                 {
-                    return item(exception);
-                }
+                    if (x is T exception)
+                    {
+                        return item(exception);
+                    }
 
-                return false;
-            });
+                    return false;
+                });
         }
 
         bool ignoreEmptyCollections = true;
@@ -171,7 +204,7 @@ namespace VerifyTests
         {
             #region defaultSerialization
 
-            var settings = new JsonSerializerSettings
+            JsonSerializerSettings settings = new()
             {
                 Formatting = Formatting.Indented,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -181,7 +214,7 @@ namespace VerifyTests
             #endregion
 
             settings.SerializationBinder = new ShortNameBinder();
-            var scrubber = new SharedScrubber(scrubGuids, scrubInlineGuids, scrubDateTimes, settings);
+            SharedScrubber scrubber = new(scrubGuids, scrubInlineGuids, scrubDateTimes, settings);
             settings.ContractResolver = new CustomContractResolver(
                 ignoreEmptyCollections,
                 ignoreFalse,
@@ -191,7 +224,8 @@ namespace VerifyTests
                 ignoreMembersWithType,
                 ignoreMembersThatThrow,
                 ignoredInstances,
-                scrubber);
+                scrubber,
+                membersConverters);
             var converters = settings.Converters;
             converters.Add(new StringConverter(scrubber));
             converters.Add(new GuidConverter(scrubber));
@@ -211,6 +245,7 @@ namespace VerifyTests
             {
                 extraSetting(settings);
             }
+
             return settings;
         }
 

@@ -13,7 +13,7 @@ To change this file edit the source file and then run MarkdownSnippets.
 
 ### AppVeyor
 
-Use an [on_failure build step](https://www.appveyor.com/docs/build-configuration/#build-pipeline) to call [Push-AppveyorArtifact](https://www.appveyor.com/docs/build-worker-api/#push-artifact).
+Use a [on_failure build step](https://www.appveyor.com/docs/build-configuration/#build-pipeline) to call [Push-AppveyorArtifact](https://www.appveyor.com/docs/build-worker-api/#push-artifact).
 
 <!-- snippet: AppVeyorArtifacts -->
 <a id='snippet-appveyorartifacts'></a>
@@ -21,24 +21,35 @@ Use an [on_failure build step](https://www.appveyor.com/docs/build-configuration
 on_failure:
   - ps: Get-ChildItem *.received.* -recurse | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 ```
-<sup><a href='/src/appveyor.yml#L9-L12' title='Snippet source file'>snippet source</a> | <a href='#snippet-appveyorartifacts' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/appveyor.yml#L10-L13' title='Snippet source file'>snippet source</a> | <a href='#snippet-appveyorartifacts' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 See also [Pushing artifacts from scripts](https://www.appveyor.com/docs/packaging-artifacts/#pushing-artifacts-from-scripts).
 
 
+### GitHub Actions
+
+Use a [if: failure()](https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions#failure) condition to upload any `*.received.*` files if the build fails.
+
+```yaml
+- name: Upload Test Results
+  if: failure()
+  uses: actions/upload-artifact@v2
+  with:
+    name: verify-test-results
+    path: |
+      **/*.received.*
+```
+
+
 ## Custom Test directory
 
-In some scenarios, as part of a build, the test assemblies are copied to a different directory or machine to be run. In this case custom code will be required to derive the path to the `.verified.` files. This can be done using a custom delegate via `VerifierSettings.DeriveTestDirectory`. The parameters passed are as follows:
-
- * `type`: The test type.
- * `testDirectory`: The directory that the test source file existed in at compile time.
- * `projectDirectory`: The directory that the project existed in at compile time.
+In some scenarios, as part of a build, the test assemblies are copied to a different directory or machine to be run. In this case custom code will be required to derive the path to the `.verified.` files. This can be done using [DeriveTestDirectory](naming.md#derivetestdirectory).
 
 For example a possible implementation for [AppVeyor](https://www.appveyor.com/) could be:
 
-<!-- snippet: DeriveTestDirectory -->
-<a id='snippet-derivetestdirectory'></a>
+<!-- snippet: DeriveTestDirectoryAppVeyor -->
+<a id='snippet-derivetestdirectoryappveyor'></a>
 ```cs
 if (BuildServerDetector.Detected)
 {
@@ -52,5 +63,5 @@ if (BuildServerDetector.Detected)
         });
 }
 ```
-<sup><a href='/src/Verify.Tests/Snippets/Snippets.cs#L83-L97' title='Snippet source file'>snippet source</a> | <a href='#snippet-derivetestdirectory' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Verify.Tests/Snippets/Snippets.cs#L99-L113' title='Snippet source file'>snippet source</a> | <a href='#snippet-derivetestdirectoryappveyor' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->

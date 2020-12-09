@@ -13,14 +13,14 @@ public class ExtensionSample :
 
     public ExtensionSample()
     {
-        classLevelSettings = new VerifySettings();
+        classLevelSettings = new();
         classLevelSettings.UseExtension("json");
     }
 
     [TestMethod]
     public Task AtMethod()
     {
-        var settings = new VerifySettings(classLevelSettings);
+        VerifySettings settings = new(classLevelSettings);
         settings.UseExtension("xml");
         return Verify(
             target: @"

@@ -7,6 +7,7 @@ using DiffEngine;
 using Newtonsoft.Json;
 using VerifyTests;
 using VerifyXunit;
+// ReSharper disable UnusedParameter.Local
 
 public class Snippets
 {
@@ -14,7 +15,7 @@ public class Snippets
 
     public async Task OnHandlersSample()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.OnFirstVerify(
             receivedFile =>
             {
@@ -38,7 +39,7 @@ public class Snippets
     {
         #region DisableClipboard
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.DisableClipboard();
 
         #endregion
@@ -63,7 +64,7 @@ public class Snippets
     {
         #region EnableClipboard
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.EnableClipboard();
 
         #endregion
@@ -81,6 +82,21 @@ public class Snippets
     void DeriveTestDirectory()
     {
         #region DeriveTestDirectory
+
+        VerifierSettings.DeriveTestDirectory(
+            (sourceFile, projectDirectory) =>
+            {
+                var snapshotsDirectory = Path.Combine(projectDirectory, "Snapshots");
+                Directory.CreateDirectory(snapshotsDirectory);
+                return Path.Combine(snapshotsDirectory);
+            });
+
+        #endregion
+    }
+
+    void DeriveTestDirectoryAppVeyor()
+    {
+        #region DeriveTestDirectoryAppVeyor
 
         if (BuildServerDetector.Detected)
         {
@@ -101,7 +117,7 @@ public class Snippets
     {
         #region AutoVerify
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.AutoVerify();
 
         #endregion
@@ -111,7 +127,7 @@ public class Snippets
     {
         #region DisableDiff
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.DisableDiff();
 
         #endregion
@@ -131,7 +147,7 @@ public class Snippets
 
         #region ExtraSettingsInstance
 
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.AddExtraSettings(_ =>
         {
             _.DateFormatHandling = DateFormatHandling.MicrosoftDateFormat;

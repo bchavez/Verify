@@ -41,7 +41,7 @@ public class Tests
     [Fact]
     public async Task OnVerifyMismatch()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.DisableDiff();
         settings.DisableClipboard();
         var onFirstVerifyCalled = false;
@@ -70,7 +70,7 @@ public class Tests
     [Fact]
     public async Task OnFirstVerify()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.DisableDiff();
         settings.DisableClipboard();
         var onFirstVerifyCalled = false;
@@ -100,7 +100,7 @@ public class Tests
         VerifierSettings.RegisterComparer(
             "SettingsArePassed",
             (_, _, _) => Task.FromResult(new CompareResult(true)));
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UseExtension("SettingsArePassed");
         await Verifier.Verify(new MemoryStream(new byte[] {1}), settings)
             .UseExtension("SettingsArePassed");
@@ -114,7 +114,21 @@ public class Tests
 
     static void MethodThatThrows()
     {
-        throw new Exception("The Message");
+        throw new("The Message");
+    }
+
+    [Fact]
+    public Task ThrowsNested()
+    {
+        return Verifier.Throws(Nested.MethodThatThrows);
+    }
+
+    public static class Nested
+    {
+        public static void MethodThatThrows()
+        {
+            throw new("The Message");
+        }
     }
 
     [Fact]
@@ -142,7 +156,7 @@ public class Tests
     [Fact]
     public Task ThrowsAggregate()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UniqueForRuntime();
         return Verifier.Throws(MethodThatThrowsAggregate, settings);
     }
@@ -155,23 +169,25 @@ public class Tests
     [Fact]
     public Task ThrowsTask()
     {
-        return Verifier.ThrowsAsync(TaskMethodThatThrows);
+        return Verifier.ThrowsAsync(TaskMethodThatThrows)
+            .UniqueForRuntime();
     }
 
     static Task TaskMethodThatThrows()
     {
-        throw new Exception("The Message");
+        throw new("The Message");
     }
 
     [Fact]
     public Task ThrowsValueTask()
     {
-        return Verifier.ThrowsAsync(ValueTaskMethodThatThrows);
+        return Verifier.ThrowsAsync(ValueTaskMethodThatThrows)
+            .UniqueForRuntime();
     }
 
     static ValueTask ValueTaskMethodThatThrows()
     {
-        throw new Exception("The Message");
+        throw new("The Message");
     }
 
     [Fact]
@@ -229,7 +245,7 @@ public class Tests
     public async Task ShouldNotIgnoreCase()
     {
         await Verifier.Verify("A");
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.DisableClipboard();
         settings.DisableDiff();
         await Assert.ThrowsAsync<XunitException>(() => Verifier.Verify("a", settings));
@@ -271,7 +287,7 @@ public class Tests
     [Fact]
     public async Task AsyncEnumerableDisposable()
     {
-        var target = new DisposableTarget();
+        DisposableTarget target = new();
         await Verifier.Verify(AsyncEnumerableDisposableMethod(target));
         Assert.True(target.Disposed);
     }
@@ -285,7 +301,7 @@ public class Tests
     [Fact]
     public async Task AsyncEnumerableAsyncDisposable()
     {
-        var target = new AsyncDisposableTarget();
+        AsyncDisposableTarget target = new();
         await Verifier.Verify(AsyncEnumerableAsyncDisposableMethod(target));
         Assert.True(target.AsyncDisposed);
     }
@@ -293,7 +309,7 @@ public class Tests
     [Fact]
     public async Task TaskResultAsyncDisposable()
     {
-        var disposableTarget = new AsyncDisposableTarget();
+        AsyncDisposableTarget disposableTarget = new();
         var target = Task.FromResult(disposableTarget);
         await Verifier.Verify(target);
         Assert.True(disposableTarget.AsyncDisposed);
@@ -316,14 +332,14 @@ public class Tests
 
         public void Dispose()
         {
-            throw new Exception();
+            throw new();
         }
     }
 
     [Fact]
     public async Task TaskResultDisposable()
     {
-        var disposableTarget = new DisposableTarget();
+        DisposableTarget disposableTarget = new();
         var target = Task.FromResult(disposableTarget);
         await Verifier.Verify(target);
         Assert.True(disposableTarget.Disposed);
@@ -347,7 +363,7 @@ public class Tests
     [Fact]
     public async Task VerifyBytesAsync()
     {
-        var settings = new VerifySettings();
+        VerifySettings settings = new();
         settings.UseExtension("jpg");
         await Verifier.Verify(File.ReadAllBytesAsync("sample.jpg"), settings);
     }

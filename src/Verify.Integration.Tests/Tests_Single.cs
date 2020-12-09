@@ -18,8 +18,11 @@ public partial class Tests
         bool hasExistingReceived,
         bool autoVerify)
     {
-        var uniqueTestName = TestNameBuilder.GetUniqueTestName("Tests_Single",Info.OfMethod<Tests>("Text"),new object[]{hasExistingReceived, autoVerify});
-        var settings = new VerifySettings();
+        var uniqueTestName = TestNameBuilder.GetUniqueTestName(
+            "Tests_Single",
+            Info.OfMethod<Tests>("Text"),
+            new object[]{hasExistingReceived, autoVerify});
+        VerifySettings settings = new();
         settings.UseParameters(hasExistingReceived, autoVerify);
         await RunTest(
             "txt",
@@ -48,8 +51,11 @@ public partial class Tests
     {
         var extension = hasMatchingDiffTool ? "knownBin" : "unknownBin";
 
-        var uniqueTestName = TestNameBuilder.GetUniqueTestName("Tests_Single", Info.OfMethod<Tests>("Stream"), new object[] {hasMatchingDiffTool, hasExistingReceived, autoVerify});
-        var settings = new VerifySettings();
+        var uniqueTestName = TestNameBuilder.GetUniqueTestName(
+            "Tests_Single",
+            Info.OfMethod<Tests>("Stream"),
+            new object[] {hasMatchingDiffTool, hasExistingReceived, autoVerify});
+        VerifySettings settings = new();
         settings.UseParameters(hasMatchingDiffTool, hasExistingReceived, autoVerify);
         await RunTest(
             extension: extension,
@@ -79,7 +85,7 @@ public partial class Tests
         }
         var prefix = Path.Combine(SourceDirectory, uniqueTestName);
         var danglingFile = Path.Combine(SourceDirectory, $"{prefix}.01.verified.{extension}");
-        var file = new FilePair(extension, prefix);
+        FilePair file = new(extension, prefix);
 
         DeleteAll(danglingFile, file.Verified, file.Received);
         File.WriteAllText(danglingFile, "");

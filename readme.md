@@ -7,6 +7,7 @@ To change this file edit the source file and then run MarkdownSnippets.
 
 # <img src='/src/icon.png' height='30px'> Verify
 
+[![Discussions](https://img.shields.io/badge/Verify-Discussions-orange?svg=true)](https://github.com/VerifyTests/Discussions)
 [![Build status](https://ci.appveyor.com/api/projects/status/dpqylic0be7s9vnm/branch/master?svg=true)](https://ci.appveyor.com/project/SimonCropp/Verify)
 [![NuGet Status](https://img.shields.io/nuget/v/Verify.Xunit.svg?label=Verify.Xunit)](https://www.nuget.org/packages/Verify.Xunit/)
 [![NuGet Status](https://img.shields.io/nuget/v/Verify.NUnit.svg?label=Verify.NUnit)](https://www.nuget.org/packages/Verify.NUnit/)
@@ -60,19 +61,19 @@ public static class ClassBeingTested
 {
     public static Person FindPerson()
     {
-        return new Person
+        return new()
         {
-            Id = new Guid("ebced679-45d3-4653-8791-3d969c4a986c"),
+            Id = new("ebced679-45d3-4653-8791-3d969c4a986c"),
             Title = Title.Mr,
             GivenNames = "John",
             FamilyName = "Smith",
             Spouse = "Jill",
-            Children = new List<string>
+            Children = new()
             {
                 "Sam",
                 "Mary"
             },
-            Address = new Address
+            Address = new()
             {
                 Street = "4 Puddle Lane",
                 Country = "USA"
@@ -81,7 +82,7 @@ public static class ClassBeingTested
     }
 }
 ```
-<sup><a href='/src/TargetLibrary/ClassBeingTested.cs#L4-L29' title='Snippet source file'>snippet source</a> | <a href='#snippet-classbeingtested' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/TargetLibrary/ClassBeingTested.cs#L1-L26' title='Snippet source file'>snippet source</a> | <a href='#snippet-classbeingtested' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -220,20 +221,20 @@ public static class ClassBeingTested
 {
     public static Person FindPerson()
     {
-        return new Person
+        return new()
         {
-            Id = new Guid("ebced679-45d3-4653-8791-3d969c4a986c"),
+            Id = new("ebced679-45d3-4653-8791-3d969c4a986c"),
             Title = Title.Mr,
             // Middle name added
             GivenNames = "John James",
             FamilyName = "Smith",
             Spouse = "Jill",
-            Children = new List<string>
+            Children = new()
             {
                 "Sam",
                 "Mary"
             },
-            Address = new Address
+            Address = new()
             {
                 // Address changed
                 Street = "64 Barnett Street",
@@ -243,7 +244,7 @@ public static class ClassBeingTested
     }
 }
 ```
-<sup><a href='/src/TargetLibrary/ClassBeingTestedChanged.cs#L6-L33' title='Snippet source file'>snippet source</a> | <a href='#snippet-classbeingtestedchanged' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/TargetLibrary/ClassBeingTestedChanged.cs#L3-L30' title='Snippet source file'>snippet source</a> | <a href='#snippet-classbeingtestedchanged' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 And the test is re run it will fail with

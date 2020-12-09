@@ -18,9 +18,9 @@ class CustomContractResolver :
     IReadOnlyList<Func<Exception, bool>> ignoreMembersThatThrow;
     IReadOnlyDictionary<Type, List<Func<object, bool>>> ignoredInstances;
     SharedScrubber scrubber;
+    Dictionary<Type, Dictionary<string, ConvertMember>> membersConverters;
 
-    public CustomContractResolver(
-        bool ignoreEmptyCollections,
+    public CustomContractResolver(bool ignoreEmptyCollections,
         bool ignoreFalse,
         bool includeObsoletes,
         IReadOnlyDictionary<Type, List<string>> ignoredMembers,
@@ -28,7 +28,8 @@ class CustomContractResolver :
         IReadOnlyList<Type> ignoredTypes,
         IReadOnlyList<Func<Exception, bool>> ignoreMembersThatThrow,
         IReadOnlyDictionary<Type, List<Func<object, bool>>> ignoredInstances,
-        SharedScrubber scrubber)
+        SharedScrubber scrubber,
+        Dictionary<Type, Dictionary<string, ConvertMember>> membersConverters)
     {
         Guard.AgainstNull(ignoredMembers, nameof(ignoredMembers));
         Guard.AgainstNull(ignoredTypes, nameof(ignoredTypes));
@@ -42,6 +43,7 @@ class CustomContractResolver :
         this.ignoreMembersThatThrow = ignoreMembersThatThrow;
         this.ignoredInstances = ignoredInstances;
         this.scrubber = scrubber;
+        this.membersConverters = membersConverters;
         IgnoreSerializableInterface = true;
     }
 
@@ -57,6 +59,9 @@ class CustomContractResolver :
         var properties = base.CreateProperties(type, memberSerialization);
         if (type.IsException())
         {
+            var stackTrace = properties.Single(x => x.PropertyName == "StackTrace");
+            properties.Remove(stackTrace);
+            properties.Add(stackTrace);
             properties.Insert(0,
                 new JsonProperty
                 {
@@ -104,7 +109,7 @@ class CustomContractResolver :
             var type = Type.GetType(value);
             if (type == null)
             {
-                throw new Exception($"Could not load type `{value}`.");
+                throw new($"Could not load type `{value}`.");
             }
 
             return TypeNameConverter.GetName(type);
@@ -113,7 +118,7 @@ class CustomContractResolver :
         return value;
     }
 
-    FieldInfo exceptionMessageField = typeof(Exception).GetField("_message", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    static FieldInfo exceptionMessageField = typeof(Exception).GetField("_message", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization serialization)
     {
@@ -168,11 +173,11 @@ class CustomContractResolver :
             return property;
         }
 
-        foreach (var keyValuePair in ignoredMembers)
+        foreach (var pair in ignoredMembers)
         {
-            if (keyValuePair.Value.Contains(propertyName))
+            if (pair.Value.Contains(propertyName))
             {
-                if (keyValuePair.Key.IsAssignableFrom(property.DeclaringType))
+                if (pair.Key.IsAssignableFrom(property.DeclaringType))
                 {
                     property.Ignored = true;
                     return property;
@@ -191,19 +196,22 @@ class CustomContractResolver :
                     return false;
                 }
 
-                foreach (var func in funcs)
-                {
-                    if (func(instance))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return funcs.All(func => !func(instance));
             };
         }
 
-        property.ValueProvider = new CustomValueProvider(valueProvider, propertyType, ignoreMembersThatThrow);
+
+        ConvertMember? membersConverter = null;
+        foreach (var pair in membersConverters)
+        {
+            if (pair.Key.IsAssignableFrom(property.DeclaringType))
+            {
+                pair.Value.TryGetValue(member.Name, out membersConverter);
+                break;
+            }
+        }
+
+        property.ValueProvider = new CustomValueProvider(valueProvider, propertyType, ignoreMembersThatThrow, membersConverter);
 
         return property;
     }

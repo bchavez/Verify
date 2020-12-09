@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 static class FileHelpers
 {
-    public static readonly Encoding Utf8NoBOM = new UTF8Encoding(false, true);
+    public static readonly UTF8Encoding Utf8NoBOM = new(false, true);
 
     public static void DeleteIfEmpty(string path)
     {
-        var fileInfo = new FileInfo(path);
+        FileInfo fileInfo = new(path);
         if (fileInfo.Exists && fileInfo.Length == 0)
         {
             fileInfo.Delete();
